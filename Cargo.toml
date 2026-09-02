@@ -1,0 +1,12 @@
+[package]
+name = "isbn-checksum"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Validates ISBN-10 and ISBN-13 check digits"
+
+[[bin]]
+name = "isbn-checksum"
+path = "src/main.rs"
+
+[dependencies]
