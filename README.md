@@ -1,7 +1,8 @@
 # isbn-checksum
 
-A command-line tool that answers one question: is this ISBN valid, and
-if not, what should the check digit have been?
+A command-line tool that answers one question: is this code valid, and
+if not, what should the check digit have been? Covers ISBN-10,
+ISBN-13, EAN-13, and UPC-A.
 
 ## Why this exists
 
@@ -22,6 +23,11 @@ someone tests it against a real book:
   casing on the `X`. A checker that only accepts thirteen bare digits
   rejects most codes as printed on an actual book.
 
+Every ISBN-13 is also a valid EAN-13 (with a 978 or 979 "Bookland"
+prefix), and UPC-A barcodes use the same mod-10 idea with different
+weights. Since all of these show up on real products next to a
+scanner that might have misread them, the tool handles all four.
+
 ## Usage
 
 ```
@@ -34,10 +40,14 @@ valid ISBN-10: 156881111X
 $ isbn-checksum 0471958690
 invalid: 0471958690
   check digit should be '7', found '0'
+
+$ isbn-checksum 036000291452
+valid UPC-A: 036000291452
 ```
 
-The tool strips hyphens and spaces, then picks ISBN-10 or ISBN-13
-based on the resulting length (10 or 13 digits).
+The tool strips hyphens and spaces, then picks a format based on the
+resulting length: 10 digits for ISBN-10, 12 for UPC-A, 13 for
+ISBN-13 or EAN-13 (told apart by the 978/979 prefix).
 
 ## Library
 
@@ -54,6 +64,7 @@ match check("978-0-306-40615-7") {
 
 ## Status
 
-ISBN-10 and ISBN-13 are covered, including the `X` check digit and
-formatted input. UPC-A and EAN-13 barcodes use a closely related
-checksum and are planned but not implemented yet.
+ISBN-10, ISBN-13, EAN-13, and UPC-A are all covered, including the
+ISBN-10 `X` check digit and formatted input. Not yet implemented:
+computing a missing check digit, batch checking from stdin, and
+property tests over randomly generated valid codes.

@@ -7,7 +7,9 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(code) = args.next() else {
         eprintln!("usage: isbn-checksum <code>");
-        eprintln!("       isbn-checksum 978-0-306-40615-7");
+        eprintln!("       isbn-checksum 978-0-306-40615-7   (ISBN-13)");
+        eprintln!("       isbn-checksum 156881111X          (ISBN-10)");
+        eprintln!("       isbn-checksum 036000291452        (UPC-A)");
         return ExitCode::FAILURE;
     };
 

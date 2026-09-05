@@ -3,7 +3,7 @@ name = "isbn-checksum"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Validates ISBN-10 and ISBN-13 check digits"
+description = "Validates ISBN-10, ISBN-13, EAN-13, and UPC-A check digits"
 
 [[bin]]
 name = "isbn-checksum"
