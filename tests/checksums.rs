@@ -3,7 +3,7 @@
 //! degenerate all-zero code that passes the math but looks suspicious.
 
 use isbn_checksum::{
-    check, check_ean13, check_isbn10, check_isbn13, check_upca, BarcodeKind, CheckError,
+    check, check_ean13, check_isbn10, check_isbn13, check_upca, compute, BarcodeKind, CheckError,
 };
 
 #[test]
@@ -101,6 +101,34 @@ fn ean13_matches_isbn13_math() {
             found: '2',
         })
     );
+}
+
+#[test]
+fn compute_dispatches_on_length() {
+    let cases: &[(&str, Result<(BarcodeKind, &str), CheckError>)] = &[
+        // ISBN-10 body, 9 digits
+        ("047195869", Ok((BarcodeKind::Isbn10, "0471958697"))),
+        // ISBN-10 whose check digit works out to the letter X
+        ("156881111", Ok((BarcodeKind::Isbn10, "156881111X"))),
+        // UPC-A body, 11 digits, with formatting
+        ("03600029145", Ok((BarcodeKind::UpcA, "036000291452"))),
+        ("036-0002914-5", Ok((BarcodeKind::UpcA, "036000291452"))),
+        // ISBN-13 body, 12 digits, Bookland prefix
+        ("978030640615", Ok((BarcodeKind::Isbn13, "9780306406157"))),
+        // 12-digit body without a Bookland prefix is a plain EAN-13
+        ("400638133393", Ok((BarcodeKind::Ean13, "4006381333931"))),
+        ("04719586A", Err(CheckError::InvalidChar('A'))),
+        ("04719586", Err(CheckError::WrongLength(8))),
+        ("0471958697", Err(CheckError::WrongLength(10))),
+    ];
+
+    for (input, expected) in cases {
+        let actual = compute(input);
+        match expected {
+            Ok((kind, full)) => assert_eq!(actual, Ok((*kind, full.to_string())), "input: {input:?}"),
+            Err(e) => assert_eq!(actual, Err(*e), "input: {input:?}"),
+        }
+    }
 }
 
 #[test]

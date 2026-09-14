@@ -47,7 +47,7 @@ impl std::fmt::Display for CheckError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CheckError::WrongLength(n) => {
-                write!(f, "expected 10, 12, or 13 digits, got {n}")
+                write!(f, "unexpected length: {n} characters after removing separators")
             }
             CheckError::InvalidChar(c) => write!(f, "unexpected character '{c}'"),
             CheckError::BadCheckDigit { expected, found } => {
@@ -188,6 +188,51 @@ pub fn check(input: &str) -> Result<BarcodeKind, CheckError> {
         }),
         n => Err(CheckError::WrongLength(n)),
     }
+}
+
+/// Compute the missing check digit for a partial code and return the
+/// completed code along with which kind it turned out to be. `input`
+/// is the code *without* its check digit: 9 digits for ISBN-10, 11
+/// for UPC-A, or 12 for ISBN-13/EAN-13. Hyphens and spaces are
+/// ignored, same as the `check_*` functions.
+pub fn compute(input: &str) -> Result<(BarcodeKind, String), CheckError> {
+    let cleaned = clean(input);
+    let chars: Vec<char> = cleaned.chars().collect();
+
+    match chars.len() {
+        9 => {
+            for c in &chars {
+                if c.to_digit(10).is_none() {
+                    return Err(CheckError::InvalidChar(*c));
+                }
+            }
+            let check = isbn10_check_digit(&chars);
+            Ok((BarcodeKind::Isbn10, format!("{cleaned}{check}")))
+        }
+        11 => {
+            let digits = to_digits(&chars)?;
+            let check = upca_check_digit(&digits);
+            Ok((BarcodeKind::UpcA, format!("{cleaned}{check}")))
+        }
+        12 => {
+            let digits = to_digits(&chars)?;
+            let check = isbn13_check_digit(&digits);
+            let kind = if cleaned.starts_with("978") || cleaned.starts_with("979") {
+                BarcodeKind::Isbn13
+            } else {
+                BarcodeKind::Ean13
+            };
+            Ok((kind, format!("{cleaned}{check}")))
+        }
+        n => Err(CheckError::WrongLength(n)),
+    }
+}
+
+fn to_digits(chars: &[char]) -> Result<Vec<u32>, CheckError> {
+    chars
+        .iter()
+        .map(|c| c.to_digit(10).ok_or(CheckError::InvalidChar(*c)))
+        .collect()
 }
 
 /// Compute the check digit for the first nine digits of an ISBN-10.
