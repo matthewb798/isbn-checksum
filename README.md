@@ -46,6 +46,11 @@ valid UPC-A: 036000291452
 
 $ isbn-checksum --compute 978030640615
 9780306406157 (ISBN-13)
+
+$ printf '156881111X\n036000291450\n' | isbn-checksum
+valid ISBN-10: 156881111X
+invalid: 036000291450
+  check digit should be '2', found '0'
 ```
 
 The tool strips hyphens and spaces, then picks a format based on the
@@ -55,6 +60,10 @@ ISBN-13 or EAN-13 (told apart by the 978/979 prefix).
 `--compute` runs the same dispatch in reverse: give it the code with
 the check digit left off (9 digits for ISBN-10, 11 for UPC-A, 12 for
 ISBN-13/EAN-13) and it prints the completed code.
+
+Run with no arguments and something piped into stdin to check many
+codes at once, one per line. Each line gets its own result, and the
+exit code is nonzero if any line failed.
 
 ## Library
 
@@ -72,6 +81,6 @@ match check("978-0-306-40615-7") {
 ## Status
 
 ISBN-10, ISBN-13, EAN-13, and UPC-A are all covered, including the
-ISBN-10 `X` check digit, formatted input, and computing a missing
-check digit. Not yet implemented: batch checking from stdin, and
-property tests over randomly generated valid codes.
+ISBN-10 `X` check digit, formatted input, computing a missing check
+digit, and batch checking from stdin. Not yet implemented: property
+tests over randomly generated valid codes.
